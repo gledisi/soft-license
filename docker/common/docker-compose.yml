@@ -1,0 +1,64 @@
+version: '2'
+services:
+  eureka-server:
+    image: ggjinaj/eureka-server:latest
+    ports:
+      - "8761:8761"
+
+  config-server:
+      image: ggjinaj/config-server:latest
+      mem_limit: 1000000000
+      ports:
+         - "8888:8888"
+
+  database:
+    image: postgres:12-alpine
+    environment:
+      - POSTGRES_DB=license
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+    ports:
+      - "6543:5432"
+
+  licensing-service:
+      image: ggjinaj/licensing-service:latest
+      mem_limit: 1073741824
+      ports:
+        - "8081:8081"
+      links:
+        - "config-server:config-server"
+      environment:
+        PROFILE: "default"
+        SERVER_PORT: "8081"
+        CONFIG_SERVER_URI: "http://config-server:8888"
+        CONFIG_SERVER_PORT: "8888"
+        EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+        EUREKA_SERVER_PORT: "8761"
+        DATABASE_SERVER_PORT: "6543"
+        ENCRYPT_KEY:       "IMSYMMETRIC"
+      networks:
+          backend:
+            aliases:
+             - "license-service"
+
+  organization-service:
+    image: ggjinaj/organization-service:latest
+    ports:
+      - "8082:8082"
+    environment:
+      PROFILE: "default"
+      SERVER_PORT: "8082"
+      CONFIGSERVER_URI: "http://configserver:8888"
+      EUREKASERVER_URI: "http://eurekaserver:8761/eureka/"
+      EUREKASERVER_PORT:        "8761"
+      DATABASESERVER_PORT:      "6543"
+      CONFIGSERVER_PORT:        "8888"
+      ENCRYPT_KEY:       "IMSYMMETRIC"
+    networks:
+        backend:
+          aliases:
+            - "organization-service"
+
+networks:
+    backend:
+      driver: bridge

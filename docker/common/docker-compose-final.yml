@@ -1,0 +1,96 @@
+eureka-server:
+   image:   ggjinaj/eurekasvr:${BUILD_NAME}
+   mem_limit: 1073741824
+   ports:
+       - "8761:8761"
+
+config-server:
+    image: ggjinaj/confsvr:${BUILD_NAME}
+    #mem_limit: 1073741824
+    mem_limit: 1000000000
+    ports:
+       - "8888:8888"
+    links:
+       - "eureka-server:eureka-server"
+    environment:
+       EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+       ENCRYPT_KEY:       "IMSYMMETRIC"
+
+zuul-server:
+    image: ggjinaj/zuulsvr:${BUILD_NAME}
+    mem_limit: 1073741824
+    ports:
+      - "5555:5555"
+    links:
+      - "eureka-server:eureka-server"
+      - "config-server:config-server"
+    environment:
+      PROFILE: "default"
+      SERVER_PORT: "5555"
+      CONFIG_SERVER_URI: "http://config-server:8888"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+
+licensing-service:
+    image: ggjinaj/licensing-service:${BUILD_NAME}
+    mem_limit: 1073741824
+    ports:
+      - "8080:8080"
+    links:
+      - "config-server:config-server"
+      - "eureka-server:eureka-server"
+      - "zuul-server:zuul-server"
+      - "kafka-server:kafka-server"
+      - "authentication-service:authentication-service"
+    environment:
+      PROFILE: "aws-dev"
+      SERVER_PORT: "8080"
+      CONFIG_SERVER_URI: "http://config-server:8888"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+      KAFKA_SERVER_URI: "kafka-server"
+      ZK_SERVER_URI: "kafka-server"
+      AUTH_SERVER_URI:   "http://authentication-service:8901/user"
+      ENCRYPT_KEY:       "IMSYMMETRIC"
+
+authentication-service:
+    image: ggjinaj/authentication-service:${BUILD_NAME}
+    mem_limit: 1073741824
+    ports:
+      - "8901:8901"
+    links:
+      - "config-server:config-server"
+      - "eureka-server:eureka-server"
+      - "zuul-server:zuul-server"
+    environment:
+      PROFILE: "aws-dev"
+      SERVER_PORT: "8901"
+      CONFIG_SERVER_URI: "http://config-server:8888"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+      ENCRYPT_KEY:       "IMSYMMETRIC"
+
+organization-service:
+    image: ggjinaj/organization-service:${BUILD_NAME}
+    mem_limit: 1073741824
+    ports:
+      - "8085:8085"
+    links:
+      - "config-server:config-server"
+      - "eureka-server:eureka-server"
+      - "zuul-server:zuul-server"
+      - "kafka-server:kafka-server"
+      - "authentication-service:authentication-service"
+    environment:
+      PROFILE: "aws-dev"
+      SERVER_PORT: "8085"
+      CONFIG_SERVER_URI: "http://config-server:8888"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+      KAFKA_SERVER_URI: "kafka-server"
+      ZK_SERVER_URI: "kafka-server"
+      AUTH_SERVER_URI:   "http://authentication-service:8901/user"
+      ENCRYPT_KEY:       "IMSYMMETRIC"
+
+kafka-server:
+    image: spotify/kafka
+    mem_limit: 1073741824
+    ports:
+      - 2181:2181
+      - 9092:9092

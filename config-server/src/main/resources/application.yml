@@ -1,0 +1,21 @@
+server:
+  port: 8888
+spring:
+  cloud:
+    config:
+      discovery:
+        enabled: true
+      server:
+        git:
+          uri: https://github.com/gledisi/config-repo.git
+          searchPaths: licensing-service,organization-service,special-routes-service,zuul-service,authentication-service
+          username: gledisi
+          password: Ledi1996!
+encrypt:
+     key: IMSYMMETRIC
+##Setting logging levels
+#logging:
+#  level:
+#    com.netflix: WARN
+#    org.springframework.web: WARN
+#    city.ac: DEBUG
