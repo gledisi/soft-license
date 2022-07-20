@@ -29,6 +29,7 @@
         <module>organization-service</module>
         <module>config-server</module>
         <module>eureka-server</module>
+        <module>gateway-server</module>
     </modules>
 
     <dependencyManagement>

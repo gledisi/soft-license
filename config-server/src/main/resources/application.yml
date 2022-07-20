@@ -8,9 +8,9 @@ spring:
       server:
         git:
           uri: https://github.com/gledisi/config-repo.git
-          searchPaths: licensing-service,organization-service,special-routes-service,zuul-service,authentication-service
-          username: gledisi
-          password: Ledi1996!
+          searchPaths: licensing-service,organization-service,gateway-server,authentication-service
+          username: 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
+          password:
 encrypt:
      key: IMSYMMETRIC
 ##Setting logging levels
