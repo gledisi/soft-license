@@ -1,21 +1,21 @@
-package city.ac.security.dto;
+package city.ac.security.util;
 
 import java.io.Serializable;
 
 import org.springframework.security.core.GrantedAuthority;
 
-public class RtsAuthority implements GrantedAuthority, Serializable {
+public class LicenseAuthority implements GrantedAuthority, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private Long id;
 	private String authority;
 
-	public RtsAuthority() {
+	public LicenseAuthority() {
 		super();
 	}
 
-	public RtsAuthority(Long id, String role) {
+	public LicenseAuthority(Long id, String role) {
 		super();
 		this.id = id;
 		this.authority = role;

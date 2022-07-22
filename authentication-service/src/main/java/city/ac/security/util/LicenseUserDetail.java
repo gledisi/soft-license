@@ -3,27 +3,22 @@ package city.ac.security.util;
 import java.util.Collection;
 import java.util.Collections;
 
-import city.ac.security.dto.RtsAuthority;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public class RtsUserDetail implements UserDetails, CredentialsContainer {
+public class LicenseUserDetail implements UserDetails, CredentialsContainer {
 
 	private static final long serialVersionUID = 1L;
 	private final String username;
 	private String password;
-	private final RtsAuthority authority;
+	private final LicenseAuthority authority;
 	private final boolean valid;
-	private final String location;
-
-	private RtsUserDetail(String username, String password, RtsAuthority authority, boolean valid,
-						  String location) {
+	private LicenseUserDetail(String username, String password, LicenseAuthority authority, boolean valid) {
 		this.username = username;
 		this.password = password;
 		this.authority =authority;
 		this.valid = valid;
-		this.location = location;
 	}
 
 	@Override
@@ -67,16 +62,11 @@ public class RtsUserDetail implements UserDetails, CredentialsContainer {
 		return valid;
 	}
 
-	public String getLocation() {
-		return location;
-	}
-
 	public static class Builder {
 		private String username;
 		private String password;
-		private RtsAuthority authority;
+		private LicenseAuthority authority;
 		private boolean valid;
-		private String location;
 
 		public Builder withUsername(String username) {
 			this.username = username;
@@ -88,7 +78,7 @@ public class RtsUserDetail implements UserDetails, CredentialsContainer {
 			return this;
 		}
 
-		public Builder withAuthorities(RtsAuthority authority) {
+		public Builder withAuthorities(LicenseAuthority authority) {
 			this.authority = authority;
 			return this;
 		}
@@ -97,14 +87,10 @@ public class RtsUserDetail implements UserDetails, CredentialsContainer {
 			this.valid = valid;
 			return this;
 		}
-		
-		public Builder withLocation(String location) {
-			this.location = location;
-			return this;
-		}
 
-		public RtsUserDetail build() {
-			return new RtsUserDetail(username, password, authority, valid, location);
+
+		public LicenseUserDetail build() {
+			return new LicenseUserDetail(username, password, authority, valid);
 		}
 	}
 

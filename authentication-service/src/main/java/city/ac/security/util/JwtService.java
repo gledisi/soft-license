@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 
-import city.ac.security.dto.RtsAuthority;
 import city.ac.security.exceptions.InvalidTokenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +36,7 @@ public class JwtService {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	public String issueToken(RtsUserDetail dpshtrrUserDetail) {
+	public String issueToken(LicenseUserDetail dpshtrrUserDetail) {
 		String id = generateTokenIdentifier();
 		ZonedDateTime issuedDate = ZonedDateTime.now();
 		ZonedDateTime expirationDate = calculateExpirationDate(issuedDate);
@@ -47,7 +46,7 @@ public class JwtService {
 					.setSubject(dpshtrrUserDetail.getUsername())
 					.setIssuedAt(Date.from(issuedDate.toInstant()))
 					.setExpiration(Date.from(expirationDate.toInstant()))
-					.claim(RtsClaim.ROLES, dpshtrrUserDetail.getAuthorities())
+					.claim(JwtClaim.ROLE, dpshtrrUserDetail.getAuthorities())
 					.signWith(SignatureAlgorithm.HS256, secret)
 					.compact();
 			// @formatter:on
@@ -61,14 +60,14 @@ public class JwtService {
 		return UUID.randomUUID().toString();
 	}
 
-	public RtsTokenDetails parseToken(String token) {
+	public LicenseTokenDetails parseToken(String token) {
 		// @formatter:off
 			try {
 				Claims claims = Jwts.parser()
 						.setSigningKey(secret)
 						.parseClaimsJws(token)
 						.getBody();
-				return new RtsTokenDetails.Builder()
+				return new LicenseTokenDetails.Builder()
 						.withId(extractTokenIdFromClaims(claims))	
 						.withUsername(extractUsernameFromClaims(claims))
 						.withAuthorities(extractAuthoritiesFromClaims(claims))
@@ -87,9 +86,9 @@ public class JwtService {
 	}
 
 	@SuppressWarnings({ "unchecked" })
-	private List<RtsAuthority> extractAuthoritiesFromClaims(Claims claims) {
-		List<Object> parsedObject = (ArrayList<Object>) claims.getOrDefault(RtsClaim.ROLES, new ArrayList<>());
-		return parsedObject.stream().map(obj -> objectMapper.convertValue(obj, RtsAuthority.class))
+	private List<LicenseAuthority> extractAuthoritiesFromClaims(Claims claims) {
+		List<Object> parsedObject = (ArrayList<Object>) claims.getOrDefault(JwtClaim.ROLE, new ArrayList<>());
+		return parsedObject.stream().map(obj -> objectMapper.convertValue(obj, LicenseAuthority.class))
 				.collect(Collectors.toList());
 
 	}

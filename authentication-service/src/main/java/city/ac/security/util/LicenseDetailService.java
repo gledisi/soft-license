@@ -2,7 +2,6 @@ package city.ac.security.util;
 
 
 
-import city.ac.security.dto.RtsAuthority;
 import city.ac.security.entity.RoleEntity;
 import city.ac.security.entity.UserEntity;
 import city.ac.security.service.UserService;
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 
 @Component
-public class RtsDetailService implements UserDetailsService {
+public class LicenseDetailService implements UserDetailsService {
 
 	@Lazy
 	@Autowired
@@ -23,7 +22,7 @@ public class RtsDetailService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(String username) {
 		UserEntity user = accountService.findWithUsername(username);
-		return new RtsUserDetail.Builder()
+		return new LicenseUserDetail.Builder()
 				.withUsername(user.getUsername())
 				.withPassword(user.getPassword())
 				.withAuthorities(toTrackListAuthority(user.getRole()))
@@ -31,7 +30,7 @@ public class RtsDetailService implements UserDetailsService {
 				.build();
 	}
 
-	  private RtsAuthority toTrackListAuthority(RoleEntity role) {
-		    return new RtsAuthority(role.getId(), role.getType().getValue());
+	  private LicenseAuthority toTrackListAuthority(RoleEntity role) {
+		    return new LicenseAuthority(role.getId(), role.getType().getValue());
 		  }
 }

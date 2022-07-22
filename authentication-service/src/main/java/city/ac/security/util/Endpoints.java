@@ -8,8 +8,6 @@ public class Endpoints {
 
 	//All
 	public static final String ALL = "/**";
-	//Authentication Endpoints
-	public static final String AUTH= "authentication-service/";
 	//USER
 	public static final String LOGIN = "/login";
 	public static final String USERS = "/users";

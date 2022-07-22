@@ -7,10 +7,9 @@ import java.util.stream.Collectors;
 import city.ac.security.dto.LoginRequest;
 import city.ac.security.dto.LoginResponse;
 import city.ac.security.dto.Role;
-import city.ac.security.dto.RtsAuthority;
-import city.ac.security.util.Endpoints;
+import city.ac.security.util.LicenseAuthority;
 import city.ac.security.util.JwtService;
-import city.ac.security.util.RtsUserDetail;
+import city.ac.security.util.LicenseUserDetail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +48,10 @@ public class LoginController {
 	}
 
 	private LoginResponse createResponse(Authentication authentication) {
-		RtsUserDetail userDetail = (RtsUserDetail) authentication.getPrincipal();
+		LicenseUserDetail userDetail = (LicenseUserDetail) authentication.getPrincipal();
 		LoginResponse response = new LoginResponse();
 		response.setUsername(userDetail.getUsername());
-		List<Role> roles = userDetail.getAuthorities().stream().map(p -> new Role(((RtsAuthority) p).getId(), p.getAuthority())).collect(Collectors.toList());
+		List<Role> roles = userDetail.getAuthorities().stream().map(p -> new Role(((LicenseAuthority) p).getId(), p.getAuthority())).collect(Collectors.toList());
 		response.setRoles(roles);
 		String generatedToken = jwtProvider.issueToken(userDetail);
 		response.setToken(generatedToken);

@@ -1,27 +1,22 @@
 package city.ac.security.util;
 
 
-import city.ac.security.dto.RtsAuthority;
-
 import java.util.Collections;
 import java.util.List;
 
 
-public class RtsTokenDetails {
+public class LicenseTokenDetails {
 
 	private final String id;
 	private final String username;
-	private final List<RtsAuthority> authorities;
+	private final List<LicenseAuthority> authorities;
 	private final boolean valid;
-	private final String location;
 
-	public RtsTokenDetails(String id, String username, List<RtsAuthority> authorities, boolean valid,
-						   String location) {
+	public LicenseTokenDetails(String id, String username, List<LicenseAuthority> authorities, boolean valid) {
 		this.id = id;
 		this.username = username;
 		this.authorities = authorities;
 		this.valid = valid;
-		this.location = location;
 	}
 
 	public String getId() {
@@ -32,7 +27,7 @@ public class RtsTokenDetails {
 		return username;
 	}
 
-	public List<RtsAuthority> getAuthorities() {
+	public List<LicenseAuthority> getAuthorities() {
 		return authorities;
 	}
 
@@ -40,17 +35,12 @@ public class RtsTokenDetails {
 		return valid;
 	}
 
-	public String getLocation() {
-		return location;
-	}
-
 
 	public static class Builder {
 		private String id;
 		private String username;
-		private List<RtsAuthority> authorities;
+		private List<LicenseAuthority> authorities;
 		private boolean valid;
-		private String location;
 
 		public Builder withId(String id) {
 			this.id = id;
@@ -62,7 +52,7 @@ public class RtsTokenDetails {
 			return this;
 		}
 
-		public Builder withAuthorities(List<RtsAuthority> authorities) {
+		public Builder withAuthorities(List<LicenseAuthority> authorities) {
 			this.authorities = authorities == null ? Collections.emptyList() : authorities;
 			return this;
 		}
@@ -71,14 +61,9 @@ public class RtsTokenDetails {
 			this.valid = valid;
 			return this;
 		}
-		
-		public Builder withLocation(String location) {
-			this.location = location;
-			return this;
-		}
 
-		public RtsTokenDetails build() {
-			return new RtsTokenDetails(id, username, authorities, valid, location);
+		public LicenseTokenDetails build() {
+			return new LicenseTokenDetails(id, username, authorities, valid);
 		}
 	}
 
