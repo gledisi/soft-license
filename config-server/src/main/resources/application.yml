@@ -9,7 +9,7 @@ spring:
         git:
           uri: https://github.com/gledisi/config-repo.git
           searchPaths: licensing-service,organization-service,gateway-server,authentication-service
-          username: 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
+          username: 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
           password:
 encrypt:
      key: IMSYMMETRIC
