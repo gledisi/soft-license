@@ -1,0 +1,93 @@
+version: '2'
+services:
+  database:
+    image: postgres:12-alpine
+    container_name: postgres-db
+    environment:
+      - POSTGRES_DB=license
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+    volumes:
+      - /home/gledisgjinaj/postgres-data:/var/lib/postgresql/data
+
+  eureka-server:
+    image: ggjinaj/eureka-server:latest
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      PROFILE: "dev"
+      SERVER_PORT: "8761"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+
+  config-server:
+    image: ggjinaj/config-server:latest
+    container_name: config-server
+    mem_limit: 1000000000
+    ports:
+      - "8888:8888"
+    environment:
+      PROFILE: "dev"
+      EUREKA_SERVER_PORT: "8761"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+
+  gateway-server:
+    image: ggjinaj/gateway-server:latest
+    container_name: gateway-server
+    mem_limit: 1073741824
+    ports:
+      - "8072:8072"
+    environment:
+      PROFILE: "dev"
+      SERVER_PORT: "8072"
+      CONFIG_SERVER_URI: "http://config-server:8888"
+      CONFIG_SERVER_PORT: "8888"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+      EUREKA_SERVER_PORT: "8761"
+
+  authentication-service:
+    image: ggjinaj/authentication-service:latest
+    container_name: authentication-service
+    mem_limit: 1073741824
+    ports:
+      - "8083:8083"
+    environment:
+      PROFILE: "dev"
+      SERVER_PORT: "8083"
+      GATEWAY_SERVER_PORT: "8072"
+      CONFIG_SERVER_URI: "http://config-server:8888"
+      CONFIG_SERVER_PORT: "8888"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+      EUREKA_SERVER_PORT: "8761"
+
+  organization-service:
+    image: ggjinaj/organization-service:latest
+    container_name: organization-service
+    mem_limit: 1073741824
+    ports:
+      - "8081:8081"
+    environment:
+      PROFILE: "dev"
+      SERVER_PORT: "8081"
+      GATEWAY_SERVER_PORT: "8072"
+      AUTHENTICATION_SERVICE_PORT: "8083"
+      CONFIG_SERVER_URI: "http://config-server:8888"
+      CONFIG_SERVER_PORT: "8888"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+      EUREKA_SERVER_PORT: "8761"
+
+  licensing-service:
+    image: ggjinaj/licensing-service:latest
+    container_name: licensing-service
+    mem_limit: 1073741824
+    ports:
+      - "8082:8082"
+    environment:
+      PROFILE: "dev"
+      SERVER_PORT: "8082"
+      GATEWAY_SERVER_PORT: "8072"
+      AUTHENTICATION_SERVICE_PORT: "8083"
+      CONFIG_SERVER_URI: "http://config-server:8888"
+      CONFIG_SERVER_PORT: "8888"
+      EUREKA_SERVER_URI: "http://eureka-server:8761/eureka/"
+      EUREKA_SERVER_PORT: "8761"
