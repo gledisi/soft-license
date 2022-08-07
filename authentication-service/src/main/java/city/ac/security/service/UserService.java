@@ -15,4 +15,5 @@ public interface UserService {
     public User add(UserCreate user);
 
     List<User> getAll();
+    User getById(Long id);
 }

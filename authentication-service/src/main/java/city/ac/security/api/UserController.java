@@ -23,14 +23,19 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping(produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = { MediaType.APPLICATION_JSON_VALUE })
+    @PostMapping
     public ResponseEntity<User> createUser(@RequestBody UserCreate request) {
         return ResponseEntity.ok(userService.add(request));
     }
 
-    @GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE })
+    @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAll());
+    }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<User> geUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getById(id));
     }
 
 }

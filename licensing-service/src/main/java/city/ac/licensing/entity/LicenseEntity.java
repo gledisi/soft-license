@@ -2,6 +2,7 @@ package city.ac.licensing.entity;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 @Entity
 @Table(name = "licenses", schema = "public")
@@ -14,14 +15,26 @@ public class LicenseEntity implements Serializable {
 
     @Column(name = "organization_id", nullable = false)
     private Long organizationId;
-    @Column(name = "license_type", nullable = false)
-    private String licenseType;
-    @Column(name = "product_name", nullable = false)
-    private String productName;
     @Column(name = "max_number")
     private Integer maxNumber;
     @Column(name = "allocated")
     private Integer allocated;
+
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private LicenseStatusEntity status;
+
+    @ManyToOne
+    @JoinColumn(name = "license_type_id")
+    private LicenseTypeEntity licenseType;
+
+    public LicenseEntity(Long id) {
+        this.id = id;
+    }
+
+    public LicenseEntity() {
+    }
+
     public Long getId() {
         return id;
     }
@@ -38,21 +51,14 @@ public class LicenseEntity implements Serializable {
         this.organizationId = organizationId;
     }
 
-    public String getLicenseType() {
+    public LicenseTypeEntity getLicenseType() {
         return licenseType;
     }
 
-    public void setLicenseType(String licenseType) {
+    public void setLicenseType(LicenseTypeEntity licenseType) {
         this.licenseType = licenseType;
     }
 
-    public String getProductName() {
-        return productName;
-    }
-
-    public void setProductName(String productName) {
-        this.productName = productName;
-    }
 
     public Integer getMaxNumber() {
         return maxNumber;
@@ -68,5 +74,27 @@ public class LicenseEntity implements Serializable {
 
     public void setAllocated(Integer allocated) {
         this.allocated = allocated;
+    }
+
+
+    public LicenseStatusEntity getStatus() {
+        return status;
+    }
+
+    public void setStatus(LicenseStatusEntity status) {
+        this.status = status;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LicenseEntity)) return false;
+        LicenseEntity that = (LicenseEntity) o;
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

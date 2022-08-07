@@ -76,5 +76,14 @@ class UserServiceImpl implements UserService {
         return UserMapper.toDTO(result);
     }
 
+    @Override
+    public User getById(Long id) {
+        String query = "SELECT user FROM UserEntity user WHERE user.deleted=false and user.id=?1";
+        UserEntity result = entityManager.createQuery(query, UserEntity.class)
+                .setParameter(1,id)
+                .getSingleResult();
+        return UserMapper.toDTO(result);
+    }
+
 
 }

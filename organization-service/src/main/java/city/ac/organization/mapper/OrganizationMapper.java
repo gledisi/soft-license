@@ -3,7 +3,7 @@ package city.ac.organization.mapper;
 import city.ac.organization.dto.OrganizationResponse;
 import city.ac.organization.entity.OrganizationEntity;
 
-public class Mapper {
+public class OrganizationMapper {
 
     public static OrganizationResponse toResponse(OrganizationEntity entity){
         OrganizationResponse response = new OrganizationResponse();
