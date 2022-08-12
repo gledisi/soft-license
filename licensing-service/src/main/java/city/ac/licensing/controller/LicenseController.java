@@ -1,12 +1,15 @@
 package city.ac.licensing.controller;
 
 import city.ac.licensing.dto.LicenseRequest;
+import city.ac.licensing.dto.LicenseRequestResponse;
 import city.ac.licensing.dto.LicenseResponse;
 import city.ac.licensing.entity.EmployeeLicenseRequestEntity;
 import city.ac.licensing.service.LicenseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/licenses")
@@ -22,6 +25,11 @@ public class LicenseController {
     @GetMapping(value = "/{id}")
     public LicenseResponse getById(@PathVariable Long id){
         return service.getById(id);
+    }
+
+    @GetMapping(value = "/requests")
+    public List<LicenseRequestResponse> getAll(@RequestParam Long organizationId){
+        return service.getAllLicenseRequests(organizationId);
     }
 
     @PostMapping(value = "/new-request")

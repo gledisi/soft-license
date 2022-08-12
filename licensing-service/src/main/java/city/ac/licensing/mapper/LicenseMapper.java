@@ -15,6 +15,14 @@ public class LicenseMapper {
     public static LicenseResponse toResponse(LicenseEntity entity){
         LicenseResponse response = new LicenseResponse();
         response.id=entity.getId();
+        response.allocated= entity.getAllocated();
+        response.annualCostPerLicense = entity.getAnnualCostPerLicense();
+        response.expiryDate = entity.getExpiryDate();
+        response.purchasedDate = entity.getPurchasedDate();
+        response.licenseType = entity.getLicenseType().getName();
+        response.maxNumber = entity.getMaxNumber();
+        response.status  = entity.getStatus().getName();
+
         return response;
     }
 

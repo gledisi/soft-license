@@ -5,7 +5,7 @@ metadata:
     service: licensing-service
   name: licensing-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       service: licensing-service

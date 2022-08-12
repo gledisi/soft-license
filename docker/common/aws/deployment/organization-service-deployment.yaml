@@ -38,7 +38,9 @@ spec:
           ports:
             - containerPort: 8081
           resources:
+            requests:
+              cpu: 250m
             limits:
-              memory: "1073741824"
+              cpu: 500m
       restartPolicy: Always
 status: {}

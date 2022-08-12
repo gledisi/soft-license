@@ -13,7 +13,7 @@ public class SoftwareEntity implements Serializable {
     @Column(unique = true, nullable = false)
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "product_name", nullable = false)
     private String name;
 
     @Column(name = "description")

@@ -9,9 +9,9 @@ VALUES (1, 'city', 'Mario Gegaj', 'mario.gegaj@city.ac.uk', '0744902232');
 INSERT INTO public.organizations(id, name, contact_name, contact_email, contact_phone)
 VALUES (2, 'Amazon', 'Mario G.', 'mario.gegaj@city.ac.uk', '0744901234');
 
-INSERT INTO public.software(id, name, description, logo)
+INSERT INTO public.software(id, product_name, description, logo)
 VALUES (1, 'Zoom', 'Zoom is a cloud-based video conferencing platform that can be used for video conferencing meetings, audio conferencing, webinars, meeting recordings, and live chat.', null);
-INSERT INTO public.software(id, name, description, logo)
+INSERT INTO public.software(id, product_name, description, logo)
 VALUES (2, 'JetBrains', 'JetBrains is a software development company which makes tools for software developers and project managers', null);
 
 
@@ -78,9 +78,9 @@ VALUES (2, 'Canceled');
 INSERT INTO public.license_request_status(id, name)
 VALUES (3, 'Approved');
 
-INSERT INTO public.licenses(id, organization_id, license_type, max_number, allocated, purchased_date, annual_cost_per_license)
-VALUES (1, 1, 2, 20, 10, '2021-09-28', '2022-10-30', 1280);
-INSERT INTO public.licenses(id, organization_id, license_type, max_number, allocated, purchased_date, annual_cost_per_license)
-VALUES (2, 1, 4, 10, 8, '2021-09-28', '2022-10-30', 1800);
-INSERT INTO public.licenses(id, organization_id, license_type, max_number, allocated, purchased_date, annual_cost_per_license)
-VALUES (3, 1, 6, 5, 3, '2021-09-28', '2022-10-30', 620);
+INSERT INTO public.licenses(id, organization_id, license_type_id,status_id, max_number, allocated, purchased_date,expiry_date, annual_cost_per_license)
+VALUES (1, 1, 2,3, 20, 10, '2021-09-28', '2022-10-30', 1280);
+INSERT INTO public.licenses(id, organization_id, license_type_id,status_id, max_number, allocated, purchased_date,expiry_date, annual_cost_per_license)
+VALUES (2, 1, 4,4, 10, 8, '2021-09-28', '2022-10-30', 1800);
+INSERT INTO public.licenses(id, organization_id, license_type_id,status_id, max_number, allocated, purchased_date,expiry_date, annual_cost_per_license)
+VALUES (3, 1, 6,3, 5, 3, '2021-09-28', '2022-10-30', 620);

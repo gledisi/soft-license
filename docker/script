@@ -1,0 +1,419 @@
+1- Intro and architecture
+ -describe main objectives of building this project;
+	The main objective of building this project is to show and describe some fundamental building blocks of microservices architecture. We will explain the role that those parts play in the overall architcture and why microservice needs to be build this way. Also the main focus of this project is to present a simple way to deploy those microservice using cloud platform aws and kubernetes.
+
+A microservice is a small, loosely coupled,distributed service,that has the following characteristics:
+ 
+ 1-Application logic is broken down into small-grained components.
+ 2-Each component has a small domain of responsibility and is deployed independently of the others.
+ 3-Microservices employ lightweight communication protocols for exchanging data between the service consumer and service provider.
+ 4-Microservices allow organizations to have smaller development teams with well-defined areas of
+responsibility
+ 
+ What we benefit form adapting miscroservice architecture?
+ -Flexibility—Decoupled services can be composed and rearranged to quickly deliver new functionality.
+ -Resilient—Decoupled services mean an application is no longer a single “ball of mud,” where a degradation in one part of the application causes the entire application to fail.
+ - Scalable—Decoupled services can easily be distributed horizontally across multiple servers, making it possible to scale the features/services appropriately.
+ 
+ What are we building?
+ Figure 1.4 shows a high-level overview of some of the services and technology
+integrations that we will use throughout the tutorial.
+
+ To start the request the client first needs to authenticate using the authentication-service, which is build as an authorization server, and get the access token. Once the token is obtained
+ client makes the request through the api gateway. The API gateway is the entry point and fowards the request to the appropriate microservice. In order to find the right service it first communicate with the eureka server, which is implements service discovery pattern and where all the microservices are first registered. Once the request arrives to the right microserice it validates the access token using the symetric-key encryption. Once validate, the microservice updtaes and retrives information from the daatabse and send back to client as http response.
+ 
+We will use a pattern-based approach and we have choosen spring to implement these patterns.
+Specifically, we’ll cover the following microservice patterns:
+Core development pattern; Routing patterns; Security patterns; deployment pattern;
+Due to short time that we have to build this project we will not cover:
+Logging and tracing patterns Application metrics patterns Build pattern
+Client resiliency patterns
+
+Implementing all of the patterns from scratch would be a tremendous amount of work. Fortunately,the Spring team has integrated a wide number of open source projects into a single Spring subproject known as Spring Cloud.
+And during the next tutorials we will explain how we can implement all these patterns using spring cloud and sping boot.
+
+
+We have divided busines logic int two subdomians organization and licensing
+The main functionalities for organization service includes:
+- crud operation for organization
+ - crud operation for employees;
+ - crud operations for software
+ 
+ licensing service will be responsible:
+ - crud functionla;lites for license type and licenses the an organiztion buy for a softwarel;
+ - allocating licenses to employes;
+ - allowing employees to view availbel licenses and request one;
+ - allowing finance user to calculate the costs of licenses ;
+ 
+ 
+ 
+2- Docker
+intro
+To continue successfully building our microservices, we need to address the portability issue. Portability is the ability to use or move software to different environments.In recent years, the concept of containers has gained more and more popularity, going from a “nice-to-have” to a “must-have” in software architecture.
+The use of containers is an agile and useful way to migrate and execute any software development from one platform to another.
+This tuturial will explain how to integrate Docker with our microservices. 
+
+docker-file
+A Dockerfile is a simple text file that contains a list of instructions and commands that the Docker client calls to create and prepare an image.
+
+1- We need to add a line in our Dockerfile that tells Docker what base image we would like to use for our application. In our case the base image is openjdk.
+2- Next we run update and upgrade commands and intall some libraries that we will need later on for executing
+bash scripts(run.sh and wait-for-it.sh) 
+3- To make things easier when running the rest of our commands, let’s set the image’s working directory.
+in this case for this service it will be /usr/local/auth-service.
+4- The next thing we need to do is to add  jar file  into the image. We’ll use the ADD command to do this. The ADD command takes two parameters. The first parameter tells Docker what file(s) you would like to copy into the image. The second parameter tells Docker where you want that file(s) to be copied to. We’ll copy these file into our working directory. 
+5- Next we do the same thing for scripts file run and wit-for-it, with the only difference that we give excutable permisions to those files.
+6- Now, all we have to do is to tell Docker what command we want to run when our image is executed inside a container. We do this using the CMD command. We are going to execute the run.sh script.
+This scriptcontaisn the java command to run the jar file when we pass also the environment  variables and executes the wait-for-it script that helps us to wait for the specific service to be started first. In this case we are waiting 25sec for gateway server to be start on port number that we pass as environment variable.
+
+Building the Docker Image
+
+Now that we’ve created our Dockerfile, let’s build our image. 
+To do this, we may use the docker build command and execute it for each docker file specifically, but that it will be a wasted time. Maven plugin comes to rescue us this time, and help us to do docker buiuld for all docker-files with just one maven command 'maven package docker:build' command.
+1-resource-maven-plugin will copy the  src/main/docker dir to to the target dir. 
+2-docker-maven-plugin is configured with an image name and specify the location of jar file that will be added into the image.
+
+
+Docker Compose 
+
+Compose is a tool for defining and running multi-container Docker applications. With Compose, you use a YAML file to configure your application’s services. Then, with a single command, you create and start all the services from your configuration.
+Lets explain some of the docker-compose instrcutions:
+1-version - Specifies the version of the Docker Compose tool.
+2-service - Specifies which services to deploy. The service name becomes the DNS entry for the Docker instance when started and is how other services access it.
+3-image   - Specifies the tool to run a container using the specified image.
+4-port    - Maps the internal and the external port.
+5-container_name - specify the name of the running container.
+6-environment - Passes the environment variables to the starting Docker image.
+
+Now that we have a docker-compose.yml, we can start our services by executing the docker-compose up command
+in the directory where the docker-compose.yml file is located.
+
+
+
+3- Config-server
+
+Seperating the application configurations from the code is a very important step. Because it creates us the oopurtunity to change the configuration without the need to rebuild or redploy or applications. All we have to do is just restart it.
+Managing application configuration is critical for microservices running in the cloud because microservice instances need to be launched quickly with minimal human intervention. There are four principles that application configuration management must follow:
+1-Segregate—We need to completely separate the service configuration information from the actual physical
+deployment of a service. 
+2-Abstract—We also need to abstract access to configuration data behind a service interface.
+3-Centralize — Centralize your application configuration into as few repositories as possible.
+4-highly available — Because your application configuration information is going to be completely segregated from your deployed service and centralized, it’s critical that the solution you utilize and implement be highly available
+
+Fortunately, Spring Cloud Config offers to us an implementation of a configuration management solution.
+Spring Cloud Config provides server-side and client-side support for externalized configuration in a distributed system.
+Now, lets walk through using both the server and the client of Spring Cloud Config Server.
+First we need to create the server. To do that we will create a simple maven project with two dependencies:
+spring-cloud-config-server and spring-boot-starter-web.
+The main part of the application is a config class, more specifically a @SpringBootApplication, which pulls in all the required setup through the auto-configure annotation @EnableConfigServer:
+Now we need to configure the server port on which our server is listening and a Git-url, which provides our version-controlled configuration content. We can use a database, or cloud platforms or just simple a file in our server to store the config files, but I think using git repo is a simple and most effictive way.
+after we set-up the config repo with all the folders for each microservice and add config-files as needed, we create a access token for our git in order to authenticate into the git. Next Step is to create the client-server into our microservices. To do that we first add the spring-cloud-starter-config dependency int pom.xml maven file, next provide @RefreshScope to the springbootapplivcation entry class. And the final step is t  prvide the config-server endpoint to the boostrap.yaml file   'cloud.config.uri'.
+The bootstrap file is a specific Spring Cloud file type and is loaded before the application properties files.
+How the configuration file is downloaded from the repo to local microservice environment.
+
+The idea is that after defining the app-name into the botstrap file. when the application starts
+it will communicate with the config server service via http and request endpoint with teh name /app-name/{profile}
+
+
+
+
+
+4- eureka-server,open-feign
+
+In any distributed architecture, we need to find the hostname or IP address of where a machine is located.
+This concept has been around since the beginning of distributed computing and is known formally as “service discovery.” Service discovery is critical to microservice, cloud-based applications for two key reasons:
+
+1-Horizontal scaling or scale out
+
+Service discovery allows the application team to quickly
+scale—horizontally—the number of service instances running
+in an environment. The service consumers are abstracted
+away from the physical location of the service. Because the
+service consumers don’t know the physical location of the
+actual service instances, new service instances can be added
+or removed from the pool of available services.
+
+
+2-Resiliency—This pattern refers to the ability to absorb the impact of problems within an architecture or service without affecting the business.
+When a microservice instance becomes unhealthy or unavailable, most service discovery
+engines remove that instance from their internal list of available services.
+ 
+Four concepts we need to know about service discovery:
+1-Service registration—How a service registers with the service discovery agent
+2-Client lookup of service address—How a service client looks up service information
+3- Information sharing—How nodes share service information
+4- Health monitoring—How services communicate their health back to the service discovery agent
+
+The principal objective of service discovery is to have an architecture where our services indicate where they are physically located instead of having to manually configure their location
+   " copy Figure 6.2 here:"
+   
+Service discovery in action using Spring and Netflix Eureka
+Lets implement know the service discovery using spring cloud eureka from netflix
+we’ll set up our Eureka service using Spring Boot. After initializing a spring boot project with two dependencies spring-cloud-starter-netflix-eureka-server and spring-cloud-starter-config we must define
+some properties for eureka server into the application.properties file.
+eureka.client.registerWithEureka—Tells the Config Server not to register with Eureka when the Spring Boot Eureka application starts.
+eureka.client.fetchRegistry—When set to false, tells the Eureka service that as it starts, it doesn’t need
+to cache its registry information locally
+eureka.client.serviceUrl.defaultZone— Provides the service URL for any client. 
+
+The last piece of setup work you need to do for your Eureka service is to add EnableEurekaServer annotation to the application bootstrap class.
+
+At this point, we have a Spring-based Eureka Server up and running. 
+Now lets show how to configure the services to register themselves with our Eureka Server.
+Registering a Spring Boot–based microservice with Eureka is a straightforward exercise.
+The first thing we need to do is to add the Spring Eureka dependency to our service.
+Every service registered with Eureka will have two components associated with it: the application ID and the
+instance ID. In a Spring Boot microservice, the application ID is always the value set by the spring.application.name property. The instance ID will be a randomly autogenerated number to represent a single service instance. Next, we need to add additional configuration in the service’s configuration files.
+
+The eureka.instance.preferIpAddress property tells Eureka that you want to register the service’s
+IP address with Eureka rather than its hostname. The eureka.client .fetchRegistry attribute tells the Spring Eureka client to fetch a local copy of the registry. Setting this attribute to true caches the registry locally instead of calling the Eureka service with each lookup. Every 30 seconds, the client software recontacts the Eureka service for any changes to the registry.
+The last attribute, eureka.serviceUrl.defaultZone, holds a comma-separated list of Eureka services the client
+uses to resolve to service locations.
+To see all the instances of a service in the REST API, select the following GET endpoint:
+http://localhost:8070/eureka/apps
+
+Invoking services with OpenFeign client:
+Feign is a declarative web service client. It makes writing web service clients easier.
+To include Feign in our project, fisrt add spring-cloud-satrter-openfeign dependency.
+Next, we need to add @EnableFeignClients annotation to our main class.
+Then we declare a Feign client using the @FeignClient annotation into an java interface.
+We can use the Spring Web annotations to declare the APIs that we want to reach out to.
+
+
+
+5-Gateway Server
+In a distributed architecture like a microservice, there will come a point where we’ll need to ensure that critical behaviors such as security, logging, and tracking users across multiple service call occur. To implement this functionality, we’ll want these attributes to be consistently enforced across all of our services without the need for each individual development team to build their own solution.
+To solve this problem, we need to abstract these cross-cutting concerns into a service that can sit independently and act as a filter and router for all the microservice calls in our architecture. We call this service a gateway. Our service clients no longer directly call a microservice. Instead, all calls are routed through the service gateway and are then routed to a final destination.
+Now we’ll see how to use Spring Cloud Gateway to implement a service gateway.
+Setting up a Spring Cloud Gateway service starts with building a new Spring Boot project and then add spring-cloud-starter-gateway dependency. The next step is to set up the src/main/resources/bootstrap.yml file with the configuration needed to retrieve the settings from the Spring Config Server.
+The Spring Cloud Gateway can integrate with the Netflix Eureka Discovery service
+To achieve this integration, we must add the Eureka configuration in the configuration server for the Gateway service.
+
+spring.cloud.gateway.discovery.locator.enabled: true -> the Spring Cloud Gateway can automatically route requests based on their service IDs.
+
+The beauty of using Spring Cloud Gateway with Eureka is that not only do we now have a single endpoint through which we can make calls, but we can also add and remove instances of a service without ever having to modify the gateway.
+
+Figure 8.5 
+
+
+
+
+6- security
+
+
+We have used Oauth2 to secure our microservices. OAuth 2 is an authorization framework about how you authorize a user to get access to a resource from your resource server by using token.
+OAuth defines four roles:
+resource owner - An entity capable of granting access to a protected resource. 
+resource server - The server hosting the protected resources, capable of accepting and responding to protected resource requests using access tokens.
+client An application making protected resource requests on behalf of the resource owner and with its authorization.
+authorization server The server issuing access tokens to the client after successfully authenticating the resource owner and obtaining authorization.
+
+Protocol Flow
+ +--------+ 			+---------------+
+ | 	|--(A)- Authorization Request -> |   Resource    |
+ | 	| 		           |    Owner      |
+ | 	|<-(B)-- Authorization Grant --- |               |
+ | 	| 		           +---------------+
+ | 	|
+ | 	| 		           +---------------+
+ | 	|--(C)-- Authorization Grant --> | Authorization |
+ | Client  | 			|    Server     |
+ | 	|<-(D)----- Access Token ------- | 	     |
+ | 	| 			+---------------+
+ | 	|
+ | 	| 			+---------------+
+ | 	|--(E)----- Access Token ------> |    Resource   |
+ | 	| 			|     Server    | 
+ | 	|<-(F)--- Protected Resource --- | 	     |
+ +--------+ 			+---------------+
+
+(A) The client requests authorization from the resource owner. 
+(B) The client receives an authorization grant, which is a credential representing the resource owner’s authorization, expressed using one of four grant types defined
+(C) The client requests an access token by authenticating with the authorization server and presenting the authorization grant.
+(D) The authorization server authenticates the client and validates the authorization grant, and if valid, issues an access token.
+(E) The client requests the protected resource from the resource server and authenticates by presenting the access token.
+(F) The resource server validates the access token, and if valid, serves the request.
+
+The resource owner password credentials (i.e., username and password)  can be used directly as an authorization grant to obtain an access token. 
+Access tokens are credentials used to access protected resources. An access token is a string representing an authorization issued to the client. 
+The access token provides an abstraction layer, replacing different authorization constructs (e.g., username and password) with a single token understood by the resource server.
+Refresh tokens are credentials used to obtain access tokens. Refresh tokens are issued to the client by the authorization server and are used to obtain a new access token when the current access token becomes invalid or expires.
+
+
+Fisrt lets show how to build the authorization server. We will create a new spring boot project, microservice called authentication-service. Dependencies needed for security are:
+spring-boot-starter-security and spring-cloud-starter-oauth2. Now we create curtom security configoritation class when we specify how the userdetails will be checked, we configured
+which request are allowed without authenticated. we will use database to retrive the user detail by the username and then check if the password provided bu user is correct.
+Next we define authentication server custom configuration. we must add EnableAuthorizationServer annotation. We define the client details (clientid,client password, authorized grant types and scopes), in this case we have stored them in memory since we will use just one client at that will be the FE or gateway-server. I most cases it will be a good practice to store the client in databse and provide an api to register new client or delete existed ones. The client credentials will be used by auth-server to verify that request for an access-token is done from a trusted client. next the request is authenticated by spring security and once eveything is okay an response is generatrd by the auth-serve that contains the access_token,
+refresh_token, exiry_time, we have nehanced the respose to contain also details of user( username and user roles). One thing that we must mention is that we are going to use symetryckey encryption between auth-server and resource-server to verify the accesstoken.
+
+Now that we finished building the auth-server we should config our resource server in order to be able to verifuy this token issued by auth-server
+To do that we have create a configuratin class annotated with EnableResourceServer which also extend ResourceServerConfigurerAdapter class;
+next we define the token store with custem jwt accestooejn converter. JwtAccestokenconverter will be our custom type  additionalClaimsToken converter that is used to extract the addition claims that we added to the toke response. next we use the symetric key encryption (same as auth-server) to verify the accestoken.
+The other thing that we must take care of is enhancing the Openfeign client to use accesstoken when requests other mcroservices. To do that we have define an interceptor that add to the request headrs the authorization property with the value of the token that we get from the spring security context; Thenb we override the FeignClient to use this interceptor.
+And now all we have to do to request protected resources of other microservices is just AuthorizedUserFeignClient annotation when we build feing clients;
+
+Now that we are all setup lets try to authenticate to auth server and then make a request to proteced reosuurce.
+
+
+
+
+
+
+7- deploying microservices
+
+Setting up core infrastructure in the cloud
+All the services will be running as Docker container inside a single-node Amazon EKS cluster. 
+EKS is an Amazon service that allows us to run Kubernetes on AWS. Kubernetes is an open source system that automates deployment, scheduling, and the creation and deletion of containers.
+
+Managing a large number of containers and microservices can become a challenging task. With tools like Kubernetes, we can handle all of our containers in a faster, more efficient way. 
+To create our cluster using the AWS CLI, we need to use eksctl. This is accomplished by using the following command:
+   'eksctl create cluster --name=soft-license-dev --nodes=1 --node-type=m4.large'
+
+Allows us to create a Kubernetes cluster (named soft-license-dev), which uses a single m4.large EC2 instance as a worker node.
+The execution of this command takes several minutes. We already have created the cluster so not going to execute the command this time.
+
+We have pushed our docker images to docker hub.
+A Kubernetes cluster uses the Secret of kubernetes.io/dockerconfigjson type to authenticate with a container registry to pull a private image.
+The follow command is used to copy docker credentials into Kubernetes:
+kubectl create secret generic regcred \
+    --from-file=.dockerconfigjson={docker-home}/docker/1779/.docker/config.json \
+    --type=kubernetes.io/dockerconfigjson
+
+
+Deployments make sure that your applications remain available by keeping the desired number of pods running and replacing unhealthy pods with new ones.
+When we multiple pods running the application, the Ips will change frequently. This makes it challenging to establish stable communication between the outside world and our application, and between multiple applications inside our cluster. A Kubernetes service is the solution to this problem. A service consists of a set of iptables rules within our cluster that turn it into a virtual component.  Because it doesn’t consume memory, and it's not a running instance, it can’t go down. The service will choose a pod using the round-robin algorithm.
+
+
+
+Kubernetes offers four types of services :
+
+
+ClusterIP	  — Exposes the service on a cluster-internal IP. If we choose this option, our service is only going to be visible within our cluster. This is the default service type.
+NodePort     — Exposes the service at a static port
+LoadBalancer — Exposes the service externally using a cloud load balancer.
+ExternalName — Maps the service to the contents of an external name.
+
+To create the services we simple execute the following command:
+kubectl apply -f <service>.yaml,<deployment>.yaml
+
+
+
+
+kubectl get pods 
+kubectl get rs
+
+To access the gatewayport from outside we must add an inbound rule to the security group of the created cluster:
+aws ec2 authorize-security-group-ingress --protocol tcp --port 31000 --group-id [security-group-id] --cidr 0.0.0.0/0
+
+To get the external IP, we can execute the command:
+kubectl get nodes -o wide
+
+In case you need to delete a pod, service, or deployment, you can execute one of the commands:
+kubectl delete -f <service>.yaml
+kubectl delete -f <deployment>.yaml
+kubectl delete <POD_NAME>
+
+
+
+Accessing Amazon RDS From AWS EKS
+
+1-Setup the Postgres Database
+	
+1-Create the VPC
+aws ec2 create-vpc --cidr-block 10.0.0.0/24 | jq '{VpcId:.Vpc.VpcId,CidrBlock:.Vpc.CidrBlock}
+export RDS_VPC_ID=	
+
+2-Create the subnets
+aws ec2 create-subnet --availability-zone "eu-central-1b" --vpc-id ${RDS_VPC_ID} --cidr-block 10.0.0.0/25 | jq \
+'{SubnetId:.Subnet.SubnetId,AvailabilityZone:.Subnet.AvailabilityZone,CidrBlock:.Subnet.CidrBlock,VpcId:.Subnet.VpcId}'
+
+aws ec2 create-subnet --availability-zone "eu-central-1a" --vpc-id ${RDS_VPC_ID} --cidr-block 10.0.0.128/25 | jq \
+'{SubnetId:.Subnet.SubnetId,AvailabilityZone:.Subnet.AvailabilityZone,CidrBlock:.Subnet.CidrBlock,VpcId:.Subnet.VpcId}'
+
+
+3-Associate these two subnet that we created, to the VPC's route table:
+aws ec2 describe-route-tables --filters Name=vpc-id,Values=${RDS_VPC_ID} | jq '.RouteTables[0].RouteTableId'
+export RDS_ROUTE_TABLE_ID=
+aws ec2 associate-route-table --route-table-id ${RDS_ROUTE_TABLE_ID} --subnet-id ${SUBNET_1}
+aws ec2 associate-route-table --route-table-id ${RDS_ROUTE_TABLE_ID} --subnet-id ${SUBNET_2}
+
+4- Create DB Subnet Group
+aws rds create-db-subnet-group --db-subnet-group-name  "PostgresDBSubnetGroup" --db-subnet-group-description "Postgres DB Subnet Group" \
+--subnet-ids ${SUBNET_1} ${SUBNET_2} | \
+jq '{DBSubnetGroupName:.DBSubnetGroup.DBSubnetGroupName,VpcId:.DBSubnetGroup.VpcId,Subnets:.DBSubnetGroup.Subnets[].SubnetIdentifier}'
+
+5-Create a VPC Security Group
+
+aws ec2 create-security-group --group-name PostgresSecurityGroup --description "Postgres security group" --vpc-id ${RDS_VPC_ID}
+
+
+6-Create a DB Instance in the VPC
+
+aws rds create-db-instance \
+  --db-name license \
+  --db-instance-identifier postgres-db \
+  --allocated-storage 10 \
+  --db-instance-class db.t2.micro \
+  --engine postgres \
+  --engine-version "12" \
+  --master-username postgres \
+  --master-user-password postgres \
+  --no-publicly-accessible \
+  --vpc-security-group-ids ${VPC_SECURITY_GROUP_ID} \
+  --db-subnet-group-name "postgresdbsubnetgroup" \
+  --availability-zone eu-central-1b \
+  --port 5432 | \
+  jq \ '{DBInstanceIdentifier:.DBInstance.DBInstanceIdentifier,Engine:.DBInstance.Engine,DBName:.DBInstance.DBName,VpcSecurityGroups:.DBInstance.VpcSecurityGroups,EngineVersion:.DBInstance.EngineVersion,PubliclyAccessible:.DBInstance.PubliclyAccessible}'
+
+
+7- Build the bridge between eks-vpc and postgres-vpc
+
+-Create and Accept a VPC Peering Connection from console
+export VPC_PEERING_CONNECTION_ID={id}
+
+-Update the EKS cluster VPC's route table
+aws ec2 describe-route-tables --filters Name="tag:aws:cloudformation:logical-id",Values="PublicRouteTable" | jq '.RouteTables[0].RouteTableId'
+aws ec2 create-route --route-table-id ${EKS_ROUTE_TABLE_ID} --destination-cidr-block 10.0.0.0/24 --vpc-peering-connection-id ${VPC_PEERING_CONNECTION_ID}
+
+-Update the RDS VPC's route table
+aws ec2 create-route --route-table-id ${RDS_ROUTE_TABLE_ID} --destination-cidr-block 192.168.0.0/16 --vpc-peering-connection-id ${VPC_PEERING_CONNECTION_ID}
+
+Update the RDS instance's security group
+aws ec2 authorize-security-group-ingress --group-id ${VPC_SECURITY_GROUP_ID} --protocol tcp --port 5432 --cidr 192.168.0.0/16
+
+
+Specify that the database service :
+In order to make the connection work, we should specify the endpoint for the RDS Postgres service
+
+
+Create an hosrizontal pod autoscaler 
+
+
+Check the current status of the newly-made HorizontalPodAutoscaler
+kubectl get hpa
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

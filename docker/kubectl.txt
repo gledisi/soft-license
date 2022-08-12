@@ -1,0 +1,67 @@
+curl -v -XPOST -u client:secret http://localhost:8083/oauth/token?grant_type=password&username=perfect&password=super
+
+eksctl create cluster --name=soft-license-dev --nodes=1 --node-type=m4.large
+
+aws eks --region eu-central-1 update-kubeconfig --name soft-license-dev
+
+aws ec2 describe-security-groups --filters Name=group-name,Values="*eksctl-soft-license-aws*" --query "SecurityGroups[*].{Name:GroupName,ID:GroupId}"
+
+// find security group id from the cluster networking console than execute this command to expose the preferd port
+aws ec2 authorize-security-group-ingress --protocol tcp --port 31000 --group-id sg-01e29ae2cd1605648  --cidr 0.0.0.0/0
+
+kubectl get nodes -o wide 
+
+http:3.72.104.133:8761/actuator
+
+kubectl create secret generic regcred \
+    --from-file=.dockerconfigjson=/home/gledisgjinaj/snap/docker/1779/.docker/config.json \
+    --type=kubernetes.io/dockerconfigjson
+    
+
+kubectl get pods
+
+kubectl logs gateway-server-5d65cbcb4f-whzvf --follow
+
+aws ec2 authorize-security-group-ingress --group-id sg-0bd238e1099e44478 --protocol tcp --port 5432 --cidr 192.168.0.0/16
+
+kubectl run -i --tty --rm debug --image=busybox --restart=Never -- sh
+
+ssh -v -NL 9000:postgres-db.cerv20uvygac.eu-central-1.rds.amazonaws.com:5432 ggjinaj@https://338911606121.signin.aws.amazon.com/console
+  
+
+___________________________________________________________________________________________________________
+
+kubectl apply -f eureka-server-service.yaml,eureka-server-deployment.yaml 
+kubectl apply -f config-server-service.yaml,config-server-deployment.yaml
+kubectl apply -f gateway-server-service.yaml,gateway-server-deployment.yaml
+kubectl apply -f postgres-service.yaml
+kubectl apply -f authentication-service-service.yaml,authentication-service-deployment.yaml
+kubectl apply -f organization-service-service.yaml,organization-service-deployment.yaml
+kubectl apply -f licensing-service-service.yaml,licensing-service-deployment.yaml
+kubectl create -f organization-service-hpa.yaml
+___________________________________________________________________________________________________________
+___________________________________________________________________________________________________________
+
+kubectl delete -f eureka-server-service.yaml,eureka-server-deployment.yaml 
+kubectl delete -f config-server-service.yaml,config-server-deployment.yaml
+kubectl delete -f gateway-server-service.yaml,gateway-server-deployment.yaml
+kubectl delete -f postgres-service.yaml
+kubectl delete -f authentication-service-service.yaml,authentication-service-deployment.yaml
+kubectl delete -f organization-service-service.yaml,organization-service-deployment.yaml
+kubectl delete -f licensing-service-service.yaml,licensing-service-deployment.yaml
+kubectl delete -f organization-service-hpa.yaml
+___________________________________________________________________________________________________________
+docker-compose up --detach --build {container-name}
+
+
+kubectl describe hpa organization-service
+
+
+  
+kubectl run postgresql-client --rm --tty -i --restart='Never' --namespace default --image bitnami/postgresql --env="PGPASSWORD=postgres" --command -- psql --host postgres-db.cerv20uvygac.eu-central-1.rds.amazonaws.com -U postgres
+
+  aws eks update-cluster-version \
+ --region eu-central-1 \
+ --name soft-license-aws \
+ --kubernetes-version 1.23
+kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=k8s.gcr.io/autoscaling/cluster-autoscaler:v1.23.0

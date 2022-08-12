@@ -1,11 +1,17 @@
 package city.ac.licensing.dto;
 
+import javax.persistence.Column;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 public class LicenseResponse {
     public Long id;
-    public String licenseId;
-    public String description;
-    public String organizationId;
-    public String productName;
+    public Integer maxNumber;
+    public Integer allocated;
+    public LocalDate purchasedDate;
+    public LocalDate expiryDate;
+    public BigDecimal annualCostPerLicense;
     public String licenseType;
+    public String status;
     public OrganizationResponse organization;
 }

@@ -2,6 +2,8 @@ package city.ac.licensing.entity;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
@@ -20,6 +22,15 @@ public class LicenseEntity implements Serializable {
     @Column(name = "allocated")
     private Integer allocated;
 
+    @Column(name = "purchased_date")
+    private LocalDate purchasedDate;
+
+    @Column(name = "expiry_date")
+    private LocalDate expiryDate;
+
+    @Column(name = "annual_cost_per_license")
+    private BigDecimal annualCostPerLicense;
+
     @ManyToOne
     @JoinColumn(name = "status_id")
     private LicenseStatusEntity status;
@@ -33,6 +44,31 @@ public class LicenseEntity implements Serializable {
     }
 
     public LicenseEntity() {
+    }
+
+
+    public LocalDate getPurchasedDate() {
+        return purchasedDate;
+    }
+
+    public void setPurchasedDate(LocalDate purchasedDate) {
+        this.purchasedDate = purchasedDate;
+    }
+
+    public LocalDate getExpiryDate() {
+        return expiryDate;
+    }
+
+    public void setExpiryDate(LocalDate expiryDate) {
+        this.expiryDate = expiryDate;
+    }
+
+    public BigDecimal getAnnualCostPerLicense() {
+        return annualCostPerLicense;
+    }
+
+    public void setAnnualCostPerLicense(BigDecimal annualCostPerLicense) {
+        this.annualCostPerLicense = annualCostPerLicense;
     }
 
     public Long getId() {

@@ -1,0 +1,71 @@
+1-Setup the Postgres Database
+	
+1-Create the VPC
+aws ec2 create-vpc --cidr-block 10.0.0.0/24 | jq '{VpcId:.Vpc.VpcId,CidrBlock:.Vpc.CidrBlock}
+export RDS_VPC_ID=	
+
+2-Create the subnets
+aws ec2 create-subnet --availability-zone "eu-central-1b" --vpc-id ${RDS_VPC_ID} --cidr-block 10.0.0.0/25 | jq \
+'{SubnetId:.Subnet.SubnetId,AvailabilityZone:.Subnet.AvailabilityZone,CidrBlock:.Subnet.CidrBlock,VpcId:.Subnet.VpcId}'
+
+aws ec2 create-subnet --availability-zone "eu-central-1a" --vpc-id ${RDS_VPC_ID} --cidr-block 10.0.0.128/25 | jq \
+'{SubnetId:.Subnet.SubnetId,AvailabilityZone:.Subnet.AvailabilityZone,CidrBlock:.Subnet.CidrBlock,VpcId:.Subnet.VpcId}'
+
+
+3-Associate these two subnet that we created, to the VPC's route table:
+aws ec2 describe-route-tables --filters Name=vpc-id,Values=${RDS_VPC_ID} | jq '.RouteTables[0].RouteTableId'
+export RDS_ROUTE_TABLE_ID=
+aws ec2 associate-route-table --route-table-id ${RDS_ROUTE_TABLE_ID} --subnet-id ${SUBNET_1}
+aws ec2 associate-route-table --route-table-id ${RDS_ROUTE_TABLE_ID} --subnet-id ${SUBNET_2}
+
+4- Create DB Subnet Group
+aws rds create-db-subnet-group --db-subnet-group-name  "PostgresDBSubnetGroup" --db-subnet-group-description "Postgres DB Subnet Group" \
+--subnet-ids ${SUBNET_1} ${SUBNET_2} | \
+jq '{DBSubnetGroupName:.DBSubnetGroup.DBSubnetGroupName,VpcId:.DBSubnetGroup.VpcId,Subnets:.DBSubnetGroup.Subnets[].SubnetIdentifier}'
+
+5-Create a VPC Security Group
+
+aws ec2 create-security-group --group-name PostgresSecurityGroup --description "Postgres security group" --vpc-id ${RDS_VPC_ID}
+
+
+6-Create a DB Instance in the VPC
+
+aws rds create-db-instance \
+  --db-name license \
+  --db-instance-identifier postgres-db \
+  --allocated-storage 10 \
+  --db-instance-class db.t2.micro \
+  --engine postgres \
+  --engine-version "12" \
+  --master-username postgres \
+  --master-user-password postgres \
+  --no-publicly-accessible \
+  --vpc-security-group-ids ${VPC_SECURITY_GROUP_ID} \
+  --db-subnet-group-name "postgresdbsubnetgroup" \
+  --availability-zone eu-central-1b \
+  --port 5432 | \
+  jq \ '{DBInstanceIdentifier:.DBInstance.DBInstanceIdentifier,Engine:.DBInstance.Engine,DBName:.DBInstance.DBName,VpcSecurityGroups:.DBInstance.VpcSecurityGroups,EngineVersion:.DBInstance.EngineVersion,PubliclyAccessible:.DBInstance.PubliclyAccessible}'
+
+6- create cluster
+
+eksctl create cluster --name=soft-license-dev --nodes=1 --node-type=m4.large
+
+
+
+7- Build the bridge between eks-vpc and postgres-vpc
+
+-Create and Accept a VPC Peering Connection from console
+export VPC_PEERING_CONNECTION_ID={id}
+
+-Update the EKS cluster VPC's route table
+aws ec2 describe-route-tables --filters Name="tag:aws:cloudformation:logical-id",Values="PublicRouteTable" | jq '.RouteTables[0].RouteTableId'
+aws ec2 create-route --route-table-id ${EKS_ROUTE_TABLE_ID} --destination-cidr-block 10.0.0.0/24 --vpc-peering-connection-id ${VPC_PEERING_CONNECTION_ID}
+
+-Update the RDS VPC's route table
+aws ec2 create-route --route-table-id ${RDS_ROUTE_TABLE_ID} --destination-cidr-block 192.168.0.0/16 --vpc-peering-connection-id ${VPC_PEERING_CONNECTION_ID}
+
+Update the RDS instance's security group
+aws ec2 authorize-security-group-ingress --group-id ${VPC_SECURITY_GROUP_ID} --protocol tcp --port 5432 --cidr 192.168.0.0/16
+
+
+

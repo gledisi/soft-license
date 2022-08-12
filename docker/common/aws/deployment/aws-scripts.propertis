@@ -1,0 +1,70 @@
+1-Create Cluster
+eksctl create cluster --name=soft-license-dev --nodes=1 --node-type=m4.large
+
+2-Copy docker credentials into Kubernetes
+kubectl create secret generic regcred \
+    --from-file=.dockerconfigjson={docker-home}/docker/1779/.docker/config.json \
+    --type=kubernetes.io/dockerconfigjson
+
+3-create the services and pods:
+kubectl apply -f <service>.yaml,<deployment>.yaml
+
+4-Delete services and pods
+kubectl delete -f <service>.yaml,<deployment>.yaml
+
+5-List pods
+kubectl get pods
+
+
+6-Steps for Accessing Amazon RDS From AWS EKS:
+    -Create the VPC
+        aws ec2 create-vpc --cidr-block 10.0.0.0/24 | jq '{VpcId:.Vpc.VpcId,CidrBlock:.Vpc.CidrBlock}
+    -Create the subnets
+        aws ec2 create-subnet --availability-zone "eu-central-1b" --vpc-id ${RDS_VPC_ID} --cidr-block 10.0.0.0/25 | jq \
+        '{SubnetId:.Subnet.SubnetId,AvailabilityZone:.Subnet.AvailabilityZone,CidrBlock:.Subnet.CidrBlock,VpcId:.Subnet.VpcId}'
+    -Associate subnet that we created, to the VPC's route table:
+        aws ec2 associate-route-table --route-table-id ${RDS_ROUTE_TABLE_ID} --subnet-id ${SUBNET_1}
+    -Create DB Subnet Group
+        aws rds create-db-subnet-group --db-subnet-group-name  "PostgresDBSubnetGroup" --db-subnet-group-description "Postgres DB Subnet Group" \
+        --subnet-ids ${SUBNET_1} ${SUBNET_2}
+    -Create a VPC Security Group
+        aws ec2 create-security-group --group-name PostgresSecurityGroup --description "Postgres security group" --vpc-id ${RDS_VPC_ID}
+    -Create a DB Instance in the VPC
+       aws rds create-db-instance \
+         --db-name license \
+         --db-instance-identifier postgres-db \
+         --allocated-storage 10 \
+         --db-instance-class db.t2.micro \
+         --engine postgres \
+         --engine-version "12" \
+         --master-username postgres \
+         --master-user-password postgres \
+         --no-publicly-accessible \
+         --vpc-security-group-ids ${VPC_SECURITY_GROUP_ID} \
+         --db-subnet-group-name "postgresdbsubnetgroup" \
+         --availability-zone eu-central-1b \
+         --port 5432
+
+    -Build the bridge between eks-vpc and postgres-vp
+        =>Create and Accept a VPC Peering Connection from aws console
+        =>Update the EKS cluster VPC's route table
+            aws ec2 create-route --route-table-id ${EKS_ROUTE_TABLE_ID}
+            --destination-cidr-block 10.0.0.0/24
+            --vpc-peering-connection-id ${VPC_PEERING_CONNECTION_ID}
+
+        => Update the RDS VPC's route table
+            aws ec2 create-route --route-table-id ${RDS_ROUTE_TABLE_ID}
+            --destination-cidr-block 192.168.0.0/16
+            --vpc-peering-connection-id ${VPC_PEERING_CONNECTION_ID}
+    -Update the RDS instance's security group
+        aws ec2 authorize-security-group-ingress --group-id ${VPC_SECURITY_GROUP_ID} --protocol tcp --port 5432 --cidr 192.168.0.0/16
+
+    -Update the EKS security group
+        aws ec2 authorize-security-group-ingress --protocol tcp --port 31000 --group-id [security-group-id] --cidr 0.0.0.0/0
+
+7-Specify the database service
+
+8-To get the external IP:
+  kubectl get nodes -o wide
+
+9-Create an horizontal pod autoscaler.

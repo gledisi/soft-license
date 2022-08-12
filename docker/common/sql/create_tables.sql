@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS public.licenses
     id integer NOT NULL ,
     organization_id bigint NOT NULL,
     license_type_id integer,
+    status_id integer,
     purchased_date date,
     expiry_date date,
     annual_cost_per_license numeric,
@@ -88,6 +89,7 @@ CREATE TABLE IF NOT EXISTS public.licenses
     allocated integer,
     CONSTRAINT licenses_pkey PRIMARY KEY (id),
     CONSTRAINT licenses_license_type_fk FOREIGN KEY (license_type_id) REFERENCES public.license_type (id),
+    CONSTRAINT licenses_license_status_fk FOREIGN KEY (status_id) REFERENCES public.license_status (id),
     CONSTRAINT licenses_organization_fk FOREIGN KEY (organization_id) REFERENCES public.organizations (id)
     );
 -- Allocated; Awaiting Inventory; Permanent; Unallocated.
